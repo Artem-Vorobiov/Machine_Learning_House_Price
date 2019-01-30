@@ -3,6 +3,12 @@ import h5py
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
+# adds
+from sklearn import preprocessing, cross_validation, svm
+from sklearn.linear_model import LinearRegression
+import pickle
+
+
 def zone2num_zones(val):
 	if 'A' == val:
 		return 0
@@ -781,35 +787,35 @@ def preprocess_data(csv_file):
     count = 0
     all_max = []
     max_max = []
-    target_cols = ['SalePrice']
-    features_cols = []
+    # target_cols = ['SalePrice']
+    # features_cols = []
 
-    for f in df:
-    	count += 1
-    	maxx = []
-    	if f != 'SalePrice':
-    		features_cols.append(f)
-    		df['{}'.format(f)] = scaler.fit_transform(np.array(df['{}'.format(f)]).reshape(-1, 1))
-	    	for i in df['{}'.format(f)].describe():
-	    		if i != 1460:
-	    			maxx.append(i)
-    	# print(max(maxx))
-	    	all_max.append(max(maxx))
-    print('\n\tThe End\n')
-    print(count)
-    print(len(all_max))
-    print('\n\n If more then 1')
-    for b in all_max:
-    	if b > 1:
-    		max_max.append(b)
-    # print(max_max)
-    # print(len(max_max))
-    # print(df.describe())
-    features_cols.remove('Id')
-    print(features_cols)
-    y_train = df[target_cols]
-    X_train = df[features_cols]
-    return X_train, y_train
+    # for f in df:
+    # 	count += 1
+    # 	maxx = []
+    # 	if f != 'SalePrice':
+    # 		features_cols.append(f)
+    # 		df['{}'.format(f)] = scaler.fit_transform(np.array(df['{}'.format(f)]).reshape(-1, 1))
+	   #  	for i in df['{}'.format(f)].describe():
+	   #  		if i != 1460:
+	   #  			maxx.append(i)
+    # 	# print(max(maxx))
+	   #  	all_max.append(max(maxx))
+    # print('\n\tThe End\n')
+    # print(count)
+    # print(len(all_max))
+    # print('\n\n If more then 1')
+    # for b in all_max:
+    # 	if b > 1:
+    # 		max_max.append(b)
+    # # print(max_max)
+    # # print(len(max_max))
+    # # print(df.describe())
+    # features_cols.remove('Id')
+    # print(features_cols)
+    # y_train = df[target_cols]
+    X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea']]
+    return X_train
 ##################################################################
 
 
@@ -847,15 +853,62 @@ def preprocess_data(csv_file):
 
 
 def wrap_preprocess():
-    X_train, y_train = preprocess_data("data/train.csv")
+    X = preprocess_data("data/test.csv")
 
-    train_size = int(len(y_train) * 0.80)
+    y = pd.read_csv('data/sample_submission.csv')
+    y = y['SalePrice']
+
+    # print(y)
+
+    # X = X.reshape(-1, 1)
+    # X = np.ravel(X_train)
+    # y = np.ravel(y_train)
+    # train_size = int(len(y_train) * 0.80)
     
-    Xtrain = np.array(X_train[:train_size])
-    ytrain = np.array(y_train[:train_size])
-    X_val = np.array(X_train[train_size:])
-    y_val = np.array(y_train[train_size:])
-    print(Xtrain.shape)
+    # Xtrain = np.array(X_train[:train_size])
+    # ytrain = np.array(y_train[:train_size])
+    # X_val = np.array(X_train[train_size:])
+    # y_val = np.array(y_train[train_size:])
+    # print(X)
+
+    # www = np.ravel(Xtrain)
+    # print(www.shape)
+##################################################################
+    # X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
+    # # clf = svm.SVR()
+    # # clf = LinearRegression()
+    # # clf = LinearRegression(n_jobs=-1)
+    # clf = svm.SVR(kernel='linear')
+    # # for k in ['linear','poly','rbf','sigmoid']:
+    # # 	clf = svm.SVR(kernel=k)
+    # # 	clf.fit(X_train, y_train)
+    # # 	confidence = clf.score(X_test, y_test)
+    # # 	print(k,confidence)
+
+    # clf.fit(X_train, y_train)
+    # confidence = clf.score(X_test, y_test)
+    # print('\n\t\t CONFIDENCE\n')
+    # print(confidence)
+
+    # filename = 'finalized_model.sav'
+    # pickle.dump(clf, open(filename, 'wb'))
+
+    loaded_model = pickle.load(open('finalized_model.sav', 'rb'))
+
+    forecast_set = loaded_model.predict(X)
+    vals = np.round(forecast_set)
+    range = np.arange(1461, 2920)
+    with open('data/output_own.csv', 'w') as f:
+    	f.write("Id,SalePrice\n")
+    	for x, y in zip(range, vals):
+    		f.write("{}, {} \n".format(x, int(y)))
+    f.close()
+
+    print(vals)
+
+
+##################################################################
+
     
     # with h5py.File("dataset-v1.h5", 'w') as f:
     #     f.create_dataset("X_train", data=np.array(X_train[:train_size]))
