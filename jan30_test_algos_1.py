@@ -5,7 +5,15 @@ from sklearn.preprocessing import MinMaxScaler
 
 # adds
 from sklearn import preprocessing, cross_validation, svm
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn import neighbors
+from sklearn.cluster import KMeans, MeanShift
+from sklearn.neural_network import MLPClassifier
+from sklearn import tree
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import AdaBoostClassifier
 import pickle
 
 
@@ -729,7 +737,7 @@ def preprocess_data(csv_file):
     df.fillna(df.mean(), inplace=True)
 
     # Normalization 43
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
 
     # df['MSZoning'] = scaler.fit_transform(np.array(df['MSZoning']).reshape(-1, 1)) 		# <class 'pandas.core.series.Series'>
     # df['Street'] = scaler.fit_transform(np.array(df['Street']).reshape(-1, 1))
@@ -787,7 +795,7 @@ def preprocess_data(csv_file):
     count = 0
     all_max = []
     max_max = []
-    target_cols = ['SalePrice']
+    # target_cols = ['SalePrice']
     # features_cols = []
 
     # for f in df:
@@ -813,9 +821,9 @@ def preprocess_data(csv_file):
     # # print(df.describe())
     # features_cols.remove('Id')
     # print(features_cols)
-    y_train = df[target_cols]
-    X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea']]
-    return X_train, y_train
+    # y_train = df[target_cols]
+    X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
+    return X_train
 ##################################################################
 
 
@@ -853,7 +861,12 @@ def preprocess_data(csv_file):
 
 
 def wrap_preprocess():
-    X, y = preprocess_data("data/train.csv")
+    X = preprocess_data("data/test.csv")
+
+    y = pd.read_csv('data/sample_submission.csv')
+    y = y['SalePrice']
+
+    # print(y)
 
     # X = X.reshape(-1, 1)
     # X = np.ravel(X_train)
@@ -869,24 +882,37 @@ def wrap_preprocess():
     # www = np.ravel(Xtrain)
     # print(www.shape)
 ##################################################################
-    X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
-    # clf = svm.SVR()
-    # clf = LinearRegression()
-    # clf = LinearRegression(n_jobs=-1)
-    clf = svm.SVR(kernel='linear')					# Accuracy = 0.4965
-    # for k in ['linear','poly','rbf','sigmoid']:
-    # 	clf = svm.SVR(kernel=k)
-    # 	clf.fit(X_train, y_train)
-    # 	confidence = clf.score(X_test, y_test)
-    # 	print(k,confidence)
+    # X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
+    # # clf = svm.SVR()
+    # # clf = LinearRegression()
+    # # clf = LinearRegression(n_jobs=-1)
+    # clf = svm.SVR(kernel='linear')
+    # # for k in ['linear','poly','rbf','sigmoid']:
+    # # 	clf = svm.SVR(kernel=k)
+    # # 	clf.fit(X_train, y_train)
+    # # 	confidence = clf.score(X_test, y_test)
+    # # 	print(k,confidence)
 
-    clf.fit(X_train, y_train)
-    confidence = clf.score(X_test, y_test)
-    print('\n\t\t CONFIDENCE\n')
-    print(confidence)
+    # clf.fit(X_train, y_train)
+    # confidence = clf.score(X_test, y_test)
+    # print('\n\t\t CONFIDENCE\n')
+    # print(confidence)
 
     # filename = 'finalized_model.sav'
     # pickle.dump(clf, open(filename, 'wb'))
+
+    loaded_model = pickle.load(open('models/jan30_10col_AdaBoostClassifier_2.sav', 'rb'))
+
+    forecast_set = loaded_model.predict(X)
+    vals = np.round(forecast_set)
+    range = np.arange(1461, 2920)
+    with open('data/jan30_10col_AdaBoostClassifier_acc0205.csv', 'w') as f:
+    	f.write("Id,SalePrice\n")
+    	for x, y in zip(range, vals):
+    		f.write("{}, {} \n".format(x, int(y)))
+    f.close()
+
+    print(vals)
 
 
 ##################################################################

@@ -5,7 +5,15 @@ from sklearn.preprocessing import MinMaxScaler
 
 # adds
 from sklearn import preprocessing, cross_validation, svm
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.tree import DecisionTreeRegressor
+from sklearn import neighbors
+from sklearn.cluster import KMeans, MeanShift
+from sklearn.neural_network import MLPClassifier
+from sklearn import tree
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import AdaBoostClassifier
 import pickle
 
 
@@ -729,7 +737,7 @@ def preprocess_data(csv_file):
     df.fillna(df.mean(), inplace=True)
 
     # Normalization 43
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
 
     # df['MSZoning'] = scaler.fit_transform(np.array(df['MSZoning']).reshape(-1, 1)) 		# <class 'pandas.core.series.Series'>
     # df['Street'] = scaler.fit_transform(np.array(df['Street']).reshape(-1, 1))
@@ -814,7 +822,8 @@ def preprocess_data(csv_file):
     # features_cols.remove('Id')
     # print(features_cols)
     y_train = df[target_cols]
-    X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea']]
+    X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
+    # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea']]
     return X_train, y_train
 ##################################################################
 
@@ -870,23 +879,85 @@ def wrap_preprocess():
     # print(www.shape)
 ##################################################################
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
+    # print(X_train)
+    # X_train = preprocessing.scale(X_train)
+    # X_test = preprocessing.scale(X_test)
+    # y_train = preprocessing.scale(y_train)
+    # y_test = preprocessing.scale(y_test)
     # clf = svm.SVR()
     # clf = LinearRegression()
     # clf = LinearRegression(n_jobs=-1)
-    clf = svm.SVR(kernel='linear')					# Accuracy = 0.4965
+
+####	####	####	####	####
+    # clf = svm.SVR(kernel='linear')				# Accuracy = 0.6066; = 0.74;  = 0.73; 
+# Before I had acc=0.49 and 4 columns. Now I have acc=0.60 and 10 columns
+	####	####	####	####	####
+
+####	####	####	####	####
+    # clf = DecisionTreeRegressor(random_state=1)	# Accuracy = 0.6861; acc = 0.75	
+    ####	####	####	####	####
+
+####	####	####	####	####
+    # clf = LinearRegression()						# Accuracy = 0.6604; acc = 0.68
+    ####	####	####	####	####
+
+####	####	####	####	####
+    # clf = neighbors.KNeighborsClassifier()		# Accuracy = 0.003 acc = 0.006
+    ####	####	####	####	####
+
+####	####	####	####	####
+    # clf = KMeans(n_clusters=2)							#	 READ ABOUT IT
+    ####	####	####	####	####
+
+####	####	####	####	####
+    # clf = MeanShift()										#	 READ ABOUT IT
+    ####	####	####	####	####
+
+####	####	####	####	####
+    # clf = LogisticRegression()	# Accuracy = 0.01369; acc = 0.0068	
+    ####	####	####	####	####
+
+####	####	####	####	####
+    # clf = MLPClassifier()	# Accuracy = 0.0136 acc = 0.0034
+    ####	####	####	####	####
+
+####	####	####	####	####
+    # clf_1 = tree.DecisionTreeClassifier(max_depth=2)	# Accuracy = 0.0068 acc = 
+    # clf_2 = tree.DecisionTreeClassifier(max_depth=5)
+    ####	####	####	####	####
+
+# ####	####	####	####	####
+    # clf_1 = RandomForestRegressor(n_estimators = 1000, random_state = 42)	# Accuracy = 0.8430 acc = 
+#     clf_2 = RandomForestRegressor()											# Accuracy = 00.8346 acc = 
+#     ####	####	####	####	####
+
+####	####	####	####	####
+    # clf_1 = GaussianNB()							# Accuracy = 0.8430 acc = 
+    ####	####	####	####	####
+
+####	####	####	####	####
+    clf_1 = AdaBoostClassifier()							# Accuracy = 0.0068 acc = 
+    ####	####	####	####	####
+
     # for k in ['linear','poly','rbf','sigmoid']:
     # 	clf = svm.SVR(kernel=k)
     # 	clf.fit(X_train, y_train)
     # 	confidence = clf.score(X_test, y_test)
     # 	print(k,confidence)
 
-    clf.fit(X_train, y_train)
-    confidence = clf.score(X_test, y_test)
-    print('\n\t\t CONFIDENCE\n')
-    print(confidence)
+    clf_1.fit(X_train, y_train)
+    # clf_2.fit(X_train, y_train)
+    confidence_1 = clf_1.score(X_test, y_test)
+    # confidence_2 = clf_2.score(X_test, y_test)
+    print('\n\t\t CONFIDENCE - 1\n')
+    print(confidence_1)
+    # print('\n\t\t CONFIDENCE - 2\n')
+    # print(confidence_2)
 
-    # filename = 'finalized_model.sav'
-    # pickle.dump(clf, open(filename, 'wb'))
+    filename = 'models/jan30_10col_AdaBoostClassifier_2.sav'
+    pickle.dump(clf_1, open(filename, 'wb'))
+    # filename = 'models/jan30_10col_RandomForestRegressor_2.sav'
+    # pickle.dump(clf_2, open(filename, 'wb'))
 
 
 ##################################################################
