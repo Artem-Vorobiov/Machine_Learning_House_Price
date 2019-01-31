@@ -1,9 +1,12 @@
 import pandas as pd
 import h5py
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
+from xgboost import XGBClassifier
 
 # adds
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 from sklearn import preprocessing, cross_validation, svm
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeRegressor
@@ -737,7 +740,7 @@ def preprocess_data(csv_file):
     df.fillna(df.mean(), inplace=True)
 
     # Normalization 43
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
 
     # df['MSZoning'] = scaler.fit_transform(np.array(df['MSZoning']).reshape(-1, 1)) 		# <class 'pandas.core.series.Series'>
     # df['Street'] = scaler.fit_transform(np.array(df['Street']).reshape(-1, 1))
@@ -791,41 +794,40 @@ def preprocess_data(csv_file):
 ######################.    Code snippet for describe() .    ######################.
 ######################.       Standardize Evrything.        ######################.
 ######################.    		     Usefull .   		    ######################.
-    # print('\n\n Intermediate Result')
+    print('\n\n Intermediate Result')
     count = 0
     all_max = []
     max_max = []
     target_cols = ['SalePrice']
-    features_cols = []
+    # features_cols = []
 
-    for f in df:
-    	count += 1
-    	maxx = []
-    	if f != 'SalePrice':
-    		features_cols.append(f)
-    	# 	df['{}'.format(f)] = scaler.fit_transform(np.array(df['{}'.format(f)]).reshape(-1, 1))
-	    # 	for i in df['{}'.format(f)].describe():
-	    # 		if i != 1460:
-	    # 			maxx.append(i)
-    	# # print(max(maxx))
-	    # 	all_max.append(max(maxx))
+    # for f in df:
+    # 	count += 1
+    # 	maxx = []
+    # 	if f != 'SalePrice':
+    # 		features_cols.append(f)
+    # 		df['{}'.format(f)] = scaler.fit_transform(np.array(df['{}'.format(f)]).reshape(-1, 1))
+	   #  	for i in df['{}'.format(f)].describe():
+	   #  		if i != 1460:
+	   #  			maxx.append(i)
+    # 	# print(max(maxx))
+	   #  	all_max.append(max(maxx))
     # print('\n\tThe End\n')
     # print(count)
     # print(len(all_max))
     # print('\n\n If more then 1')
-    for b in all_max:
-    	if b > 1:
-    		max_max.append(b)
-    # print(max_max)
-    # print(len(max_max))
-    # print(df.describe())
-    features_cols.remove('Id')
+    # for b in all_max:
+    # 	if b > 1:
+    # 		max_max.append(b)
+    # # print(max_max)
+    # # print(len(max_max))
+    # # print(df.describe())
+    # features_cols.remove('Id')
     # print(features_cols)
-    # y_train = df[target_cols]
-    # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
-    # X_train = df[features_cols]
-    X_train = df[['OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'FullBath', 'YearBuilt']]
-    return X_train
+    y_train = df[target_cols]
+    X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
+    # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea']]
+    return X_train, y_train
 ##################################################################
 
 
@@ -863,58 +865,26 @@ def preprocess_data(csv_file):
 
 
 def wrap_preprocess():
-    X = preprocess_data("data/test.csv")
+    X, y = preprocess_data("data/train.csv")
 
-    y = pd.read_csv('data/sample_submission.csv')
-    y = y['SalePrice']
 
-    # print(y)
-
-    # X = X.reshape(-1, 1)
-    # X = np.ravel(X_train)
-    # y = np.ravel(y_train)
-    # train_size = int(len(y_train) * 0.80)
-    
-    # Xtrain = np.array(X_train[:train_size])
-    # ytrain = np.array(y_train[:train_size])
-    # X_val = np.array(X_train[train_size:])
-    # y_val = np.array(y_train[train_size:])
-    # print(X)
-
-    # www = np.ravel(Xtrain)
-    # print(www.shape)
 ##################################################################
-    # X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
-    # # clf = svm.SVR()
-    # # clf = LinearRegression()
-    # # clf = LinearRegression(n_jobs=-1)
-    # clf = svm.SVR(kernel='linear')
-    # # for k in ['linear','poly','rbf','sigmoid']:
-    # # 	clf = svm.SVR(kernel=k)
-    # # 	clf.fit(X_train, y_train)
-    # # 	confidence = clf.score(X_test, y_test)
-    # # 	print(k,confidence)
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
 
-    # clf.fit(X_train, y_train)
-    # confidence = clf.score(X_test, y_test)
-    # print('\n\t\t CONFIDENCE\n')
-    # print(confidence)
+    clf_1 = XGBClassifier()
+    clf_1.fit(X_train, y_train)
+    # clf_2.fit(X_train, y_train)
+    confidence_1 = clf_1.score(X_test, y_test)
+    # confidence_2 = clf_2.score(X_test, y_test)
+    print('\n\t\t CONFIDENCE - 1\n')
+    print(confidence_1)
+    # print('\n\t\t CONFIDENCE - 2\n')
+    # print(confidence_2)
 
-    # filename = 'finalized_model.sav'
-    # pickle.dump(clf, open(filename, 'wb'))
-
-    loaded_model = pickle.load(open('models/jan31_RandomForestRegressor_HeatMap.sav', 'rb'))
-
-    forecast_set = loaded_model.predict(X)
-    vals = np.round(forecast_set)
-    range = np.arange(1461, 2920)
-    with open('data/jan31_full_RandomForestRegressor_acc9994.csv', 'w') as f:
-    	f.write("Id,SalePrice\n")
-    	for x, y in zip(range, vals):
-    		f.write("{}, {} \n".format(x, int(y)))
-    f.close()
-
-    print(vals)
+    # filename = 'models/jan31_10col_.sav'
+    # pickle.dump(clf_1, open(filename, 'wb'))
+    # filename = 'models/jan30_10col_RandomForestRegressor_2.sav'
+    # pickle.dump(clf_2, open(filename, 'wb'))
 
 
 ##################################################################

@@ -737,7 +737,7 @@ def preprocess_data(csv_file):
     df.fillna(df.mean(), inplace=True)
 
     # Normalization 43
-    # scaler = MinMaxScaler()
+    scaler = MinMaxScaler()
 
     # df['MSZoning'] = scaler.fit_transform(np.array(df['MSZoning']).reshape(-1, 1)) 		# <class 'pandas.core.series.Series'>
     # df['Street'] = scaler.fit_transform(np.array(df['Street']).reshape(-1, 1))
@@ -791,39 +791,44 @@ def preprocess_data(csv_file):
 ######################.    Code snippet for describe() .    ######################.
 ######################.       Standardize Evrything.        ######################.
 ######################.    		     Usefull .   		    ######################.
-    print('\n\n Intermediate Result')
+    # print('\n\n Intermediate Result')
     count = 0
     all_max = []
     max_max = []
     target_cols = ['SalePrice']
-    # features_cols = []
+    features_cols = []
 
-    # for f in df:
-    # 	count += 1
-    # 	maxx = []
-    # 	if f != 'SalePrice':
-    # 		features_cols.append(f)
-    # 		df['{}'.format(f)] = scaler.fit_transform(np.array(df['{}'.format(f)]).reshape(-1, 1))
-	   #  	for i in df['{}'.format(f)].describe():
-	   #  		if i != 1460:
-	   #  			maxx.append(i)
-    # 	# print(max(maxx))
-	   #  	all_max.append(max(maxx))
+    for f in df:
+    	count += 1
+    	maxx = []
+    	if f != 'SalePrice':
+    		features_cols.append(f)
+    	# 	df['{}'.format(f)] = scaler.fit_transform(np.array(df['{}'.format(f)]).reshape(-1, 1))
+	    # 	for i in df['{}'.format(f)].describe():
+	    # 		if i != 1460:
+	    # 			maxx.append(i)
+    	# # print(max(maxx))
+	    # 	all_max.append(max(maxx))
     # print('\n\tThe End\n')
     # print(count)
     # print(len(all_max))
     # print('\n\n If more then 1')
-    # for b in all_max:
-    # 	if b > 1:
-    # 		max_max.append(b)
-    # # print(max_max)
-    # # print(len(max_max))
-    # # print(df.describe())
-    # features_cols.remove('Id')
+    for b in all_max:
+    	if b > 1:
+    		max_max.append(b)
+    # print(max_max)
+    # print(len(max_max))
+    # print(df.describe())
+    features_cols.remove('Id')
     # print(features_cols)
     y_train = df[target_cols]
-    X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
-    # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea']]
+    # X_train = df[['YearBuilt','LotFrontage', 'MSSubClass', 'GarageArea', 'LotArea', 'YearBuilt', 'BsmtFinSF1', \
+    #  'YearRemodAdd', 'MasVnrArea',  'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold', \
+    #  'BsmtFinSF2', 'Electrical', 'LowQualFinSF', 'FullBath', 'TotRmsAbvGrd', 'GarageYrBlt', 'GarageArea', \
+    #  'PoolArea', 'MiscFeature', 'SaleType']]
+    # # X_train = df[features_cols]
+    X_train = df[['OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'FullBath', 'YearBuilt']]
+    # X_train = df[features_cols]
     return X_train, y_train
 ##################################################################
 
@@ -928,7 +933,7 @@ def wrap_preprocess():
 
 # ####	####	####	####	####
     # clf_1 = RandomForestRegressor(n_estimators = 1000, random_state = 42)	# Accuracy = 0.8430 acc = 
-#     clf_2 = RandomForestRegressor()											# Accuracy = 00.8346 acc = 
+    clf_1 = RandomForestRegressor()											# Accuracy = 00.8346 acc = 
 #     ####	####	####	####	####
 
 ####	####	####	####	####
@@ -936,7 +941,7 @@ def wrap_preprocess():
     ####	####	####	####	####
 
 ####	####	####	####	####
-    clf_1 = AdaBoostClassifier()							# Accuracy = 0.0068 acc = 
+    # clf_1 = AdaBoostClassifier()							# Accuracy = 0.0068 acc = 
     ####	####	####	####	####
 
     # for k in ['linear','poly','rbf','sigmoid']:
@@ -954,7 +959,7 @@ def wrap_preprocess():
     # print('\n\t\t CONFIDENCE - 2\n')
     # print(confidence_2)
 
-    filename = 'models/jan30_10col_AdaBoostClassifier_2.sav'
+    filename = 'models/jan31_RandomForestRegressor_HeatMap.sav'
     pickle.dump(clf_1, open(filename, 'wb'))
     # filename = 'models/jan30_10col_RandomForestRegressor_2.sav'
     # pickle.dump(clf_2, open(filename, 'wb'))

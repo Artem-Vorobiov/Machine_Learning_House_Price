@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import statistics 
 
-test    = pd.read_csv('data/jan30_10col_AdaBoostClassifier_acc0205.csv')
+test    = pd.read_csv('data/jan31_full_RandomForestRegressor_acc9994.csv')
 reality = pd.read_csv('data/sample_submission.csv')
 
 
@@ -118,6 +118,19 @@ print(statistics.mean(attemps))		# Another way
 # 16.		Trained acc = 0.0205
 # Compare (acc) = 0.8488
 
+
+# 				JANUARY 31
+
+#				RandomForestRegressor
+
+# Withfull feature set + scaler
+# 17.		Trained acc = 0.8994
+# Compare (acc) = 0.6817
+
+
+# Withfull feature set + without scaler
+# 18.		Trained acc = 0.9105
+# Compare (acc) = 0.7003
 
 
 
