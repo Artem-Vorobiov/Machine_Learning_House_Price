@@ -825,9 +825,14 @@ def preprocess_data(csv_file):
     # features_cols.remove('Id')
     # print(features_cols)
     y_train = df[target_cols]
-    # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
     # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea']]
-    X_train = df[['SalePrice', 'OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'FullBath', 'YearBuilt']]
+
+    #	Training set 1
+    # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
+    # Accuracy = 78; 83; 82; 85; 77; 60; 74; 77; 71; 85; 82; 71; 83; 84; 74; 76; 84; 80; 81; 80
+
+    #	Training set 2
+    X_train = df[['OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'FullBath', 'YearBuilt']]
     return X_train, y_train
 ##################################################################
 
@@ -872,7 +877,7 @@ def wrap_preprocess():
 ##################################################################
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
 
-    clf_1 = XGBClassifier()
+    clf_1 = RandomForestRegressor()
     clf_1.fit(X_train, y_train)
     # clf_2.fit(X_train, y_train)
     confidence_1 = clf_1.score(X_test, y_test)

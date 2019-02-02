@@ -3,6 +3,12 @@ import h5py
 import numpy as np
 from xgboost import XGBClassifier
 
+import seaborn as sns 					#	Seaborn is a Python data visualization library based on matplotlib.
+from scipy.stats import norm
+from sklearn.preprocessing import StandardScaler
+from scipy import stats
+import matplotlib.pyplot as plt
+
 # adds
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
@@ -825,9 +831,81 @@ def preprocess_data(csv_file):
     # features_cols.remove('Id')
     # print(features_cols)
     y_train = df[target_cols]
-    # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
     # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea']]
-    X_train = df[['SalePrice', 'OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'FullBath', 'YearBuilt']]
+
+    #	Training set 1
+    # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
+
+    #	Training set 2
+    X_train = df[['OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'FullBath', 'YearBuilt']]
+
+##################################################################
+	#	Plotting 
+
+		########## SalePrice ##########
+    df['SalePrice'] = np.log(df['SalePrice'])
+    # sns.distplot(df['SalePrice'], fit=norm);
+    # fig = plt.figure()
+    # res = stats.probplot(df['SalePrice'], plot=plt)
+
+    	########## GrLivArea ##########
+    df['GrLivArea'] = np.log(df['GrLivArea'])
+    # sns.distplot(df['GrLivArea'], fit=norm);
+    # fig = plt.figure()
+    # res = stats.probplot(df['GrLivArea'], plot=plt)
+
+
+    	########## TotalBsmtSF ##########
+    # df['HasBsmt'] = pd.Series(len(df['TotalBsmtSF']), index=df.index)
+    # df['HasBsmt'] = 0 
+    # df.loc[df['TotalBsmtSF']>0,'HasBsmt'] = 1
+    # df.loc[df['HasBsmt']==1,'TotalBsmtSF'] = np.log(df['TotalBsmtSF'])
+    # sns.distplot(df[df['TotalBsmtSF']>0]['TotalBsmtSF'], fit=norm);
+    # fig = plt.figure()
+    # res = stats.probplot(df[df['TotalBsmtSF']>0]['TotalBsmtSF'], plot=plt)
+
+
+    	########## OverallQual ##########
+    df['OverallQual'] = np.log(df['OverallQual'])
+    # sns.distplot(df['OverallQual'], fit=norm);
+    # fig = plt.figure()
+    # res = stats.probplot(df['OverallQual'], plot=plt)
+
+    # var = 'OverallQual'
+    # data = pd.concat([df['SalePrice'], df[var]], axis=1)
+    # f, ax = plt.subplots(figsize=(8, 6))
+    # fig = sns.boxplot(x=var, y="SalePrice", data=data)
+    # fig.axis(ymin=0, ymax=800000);
+
+
+    	########## GarageCars ##########
+    # sns.distplot(df['GarageCars'], fit=norm);
+    # fig = plt.figure()
+    # res = stats.probplot(df['GarageCars'], plot=plt)
+
+
+    	########## FullBath ##########
+    # sns.distplot(df['FullBath'], fit=norm);
+    # fig = plt.figure()
+    # res = stats.probplot(df['FullBath'], plot=plt)
+
+
+    	########## YearBuilt ##########
+    # var = 'YearBuilt'
+    # data = pd.concat([df['SalePrice'], df[var]], axis=1)
+    # f, ax = plt.subplots(figsize=(16, 8))
+    # fig = sns.boxplot(x=var, y="SalePrice", data=data)
+    # fig.axis(ymin=0, ymax=800000);
+    # plt.xticks(rotation=90);
+
+    df['YearBuilt'] = np.log(df['YearBuilt'])
+    # sns.distplot(df['YearBuilt'], fit=norm);
+    # fig = plt.figure()
+    # res = stats.probplot(df['YearBuilt'], plot=plt)
+
+
+    plt.show()
+
     return X_train, y_train
 ##################################################################
 
@@ -872,15 +950,25 @@ def wrap_preprocess():
 ##################################################################
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
 
-    clf_1 = XGBClassifier()
-    clf_1.fit(X_train, y_train)
+    xyz = 0
+    while xyz < 1000:
+	    clf_1 = RandomForestRegressor()
+	    clf_1.fit(X_train, y_train)
     # clf_2.fit(X_train, y_train)
-    confidence_1 = clf_1.score(X_test, y_test)
+	    confidence_1 = clf_1.score(X_test, y_test)
+
+	    ################################################
+	    vals = round(confidence_1, 4)
+	    with open('acc_set_2_Log4.txt', 'a') as f:
+	    	f.writelines('Accuracy = {} \n'.format(vals))
+	    	f.close()
+	    ################################################
+
+	    xyz += 1
     # confidence_2 = clf_2.score(X_test, y_test)
     print('\n\t\t CONFIDENCE - 1\n')
     print(confidence_1)
     # print('\n\t\t CONFIDENCE - 2\n')
-    # print(confidence_2)
 
     # filename = 'models/jan31_10col_.sav'
     # pickle.dump(clf_1, open(filename, 'wb'))
