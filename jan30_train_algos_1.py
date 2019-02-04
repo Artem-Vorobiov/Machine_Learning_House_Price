@@ -933,7 +933,7 @@ def wrap_preprocess():
 
 # ####	####	####	####	####
     # clf_1 = RandomForestRegressor(n_estimators = 1000, random_state = 42)	# Accuracy = 0.8430 acc = 
-    clf_1 = RandomForestRegressor()											# Accuracy = 00.8346 acc = 
+    # clf_1 = RandomForestRegressor()											# Accuracy = 00.8346 acc = 
 #     ####	####	####	####	####
 
 ####	####	####	####	####
@@ -941,7 +941,7 @@ def wrap_preprocess():
     ####	####	####	####	####
 
 ####	####	####	####	####
-    # clf_1 = AdaBoostClassifier()							# Accuracy = 0.0068 acc = 
+    clf_1 = AdaBoostClassifier()							# Accuracy = 0.0068 acc = 
     ####	####	####	####	####
 
     # for k in ['linear','poly','rbf','sigmoid']:
@@ -959,7 +959,7 @@ def wrap_preprocess():
     # print('\n\t\t CONFIDENCE - 2\n')
     # print(confidence_2)
 
-    filename = 'models/jan31_RandomForestRegressor_HeatMap.sav'
+    filename = 'models/AdaBoostClassifier_F.sav'
     pickle.dump(clf_1, open(filename, 'wb'))
     # filename = 'models/jan30_10col_RandomForestRegressor_2.sav'
     # pickle.dump(clf_2, open(filename, 'wb'))

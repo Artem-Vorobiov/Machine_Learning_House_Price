@@ -14,6 +14,7 @@ from sklearn import tree
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.linear_model import LinearRegression, RidgeCV, LassoCV, ElasticNetCV
 import pickle
 
 
@@ -829,86 +830,20 @@ def preprocess_data(csv_file):
 ##################################################################
 
 
-######################.    research works.    ######################.
-    # print('\n\t\t\t NEXT TURN \n\n')
-    # print(df['Neighborhood'])
-    # www = df.describe()
-    # for f in www:
-    # 	if f != 1460:
-    # 		print(f)
-    # 		print(type(f))
-
-    # print(type(www))					#	<class 'pandas.core.frame.DataFrame'>
-    # df.to_csv("test_description_2.csv")
-    # print(df.isnull().sum())
-    # print(df.describe())
-    print('\n\n')
-    # print(df.head(2))
-    # print('\n\n')
-    # print(df[['HouseStyle', 'Condition1', 'Condition2', 'BldgType', 'RoofStyle'\
-    # 	, 'RoofMatl', 'Exterior1st', 'Exterior2nd', 'MasVnrType', 'ExterQual', \
-    # 	'ExterCond', 'Foundation', 'BsmtQual', 'BsmtCond', 'BsmtExposure', \
-    # 	'BsmtFinType1', 'BsmtFinType2', 'Heating', 'HeatingQC', 'CentralAir', 'Electrical',\
-    # 	'KitchenQual', 'Functional', 'FireplaceQu', 'GarageType', 'GarageFinish', \
-    # 	'GarageQual', 'GarageCond', 'PavedDrive', 'PoolQC', 'Fence', 'MiscFeature', 'SaleType', \
-    # 	'SaleCondition']].describe())
-    # print('\n\n')
-    # print('\t\t\t Time For Error')
-    # print('\n\n')
-##################################################################
-
-
-
-
-
-
 def wrap_preprocess():
     X = preprocess_data("data/test.csv")
 
     y = pd.read_csv('data/sample_submission.csv')
     y = y['SalePrice']
 
-    # print(y)
+  
 
-    # X = X.reshape(-1, 1)
-    # X = np.ravel(X_train)
-    # y = np.ravel(y_train)
-    # train_size = int(len(y_train) * 0.80)
-    
-    # Xtrain = np.array(X_train[:train_size])
-    # ytrain = np.array(y_train[:train_size])
-    # X_val = np.array(X_train[train_size:])
-    # y_val = np.array(y_train[train_size:])
-    # print(X)
-
-    # www = np.ravel(Xtrain)
-    # print(www.shape)
-##################################################################
-    # X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
-    # # clf = svm.SVR()
-    # # clf = LinearRegression()
-    # # clf = LinearRegression(n_jobs=-1)
-    # clf = svm.SVR(kernel='linear')
-    # # for k in ['linear','poly','rbf','sigmoid']:
-    # # 	clf = svm.SVR(kernel=k)
-    # # 	clf.fit(X_train, y_train)
-    # # 	confidence = clf.score(X_test, y_test)
-    # # 	print(k,confidence)
-
-    # clf.fit(X_train, y_train)
-    # confidence = clf.score(X_test, y_test)
-    # print('\n\t\t CONFIDENCE\n')
-    # print(confidence)
-
-    # filename = 'finalized_model.sav'
-    # pickle.dump(clf, open(filename, 'wb'))
-
-    loaded_model = pickle.load(open('models/AdaBoostClassifier_F.sav', 'rb'))
+    loaded_model = pickle.load(open('models/ElasticNetCV.sav', 'rb'))
 
     forecast_set = loaded_model.predict(X)
     vals = np.round(forecast_set)
     range = np.arange(1461, 2920)
-    with open('data/AdaBoostClassifier_acc0068.csv', 'w') as f:
+    with open('data/ElasticNetCV_acc7882.csv', 'w') as f:
     	f.write("Id,SalePrice\n")
     	for x, y in zip(range, vals):
     		f.write("{}, {} \n".format(x, int(y)))
@@ -920,11 +855,5 @@ def wrap_preprocess():
 ##################################################################
 
     
-    # with h5py.File("dataset-v1.h5", 'w') as f:
-    #     f.create_dataset("X_train", data=np.array(X_train[:train_size]))
-    #     f.create_dataset('y_train', data=np.array(y_train[:train_size]))
-    #     f.create_dataset("X_val", data=np.array(X_train[train_size:]))
-    #     f.create_dataset("y_val", data=np.array(y_train[train_size:]))
-
 
 wrap_preprocess()

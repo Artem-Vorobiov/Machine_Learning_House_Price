@@ -1,9 +1,15 @@
 import pandas as pd
 import h5py
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
+from xgboost import XGBClassifier
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import skew
 
 # adds
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 from sklearn import preprocessing, cross_validation, svm
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeRegressor
@@ -14,7 +20,12 @@ from sklearn import tree
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.linear_model import LinearRegression, RidgeCV, LassoCV, ElasticNetCV
+from sklearn.metrics import mean_squared_error, make_scorer
+from sklearn.model_selection import cross_val_score, train_test_split
 import pickle
+from sklearn.preprocessing import StandardScaler
+
 
 
 def zone2num_zones(val):
@@ -669,10 +680,11 @@ def SaleCondition2num_SaleCondition(val):
 
 
 
+
+
 def preprocess_data(csv_file):
 
     df = pd.read_csv(csv_file)
-
 ######################.    research works.    ######################.
     # print(df.isnull().sum())
     # print(df.isnull())
@@ -737,7 +749,7 @@ def preprocess_data(csv_file):
     df.fillna(df.mean(), inplace=True)
 
     # Normalization 43
-    scaler = MinMaxScaler()
+    # scaler = MinMaxScaler()
 
     # df['MSZoning'] = scaler.fit_transform(np.array(df['MSZoning']).reshape(-1, 1)) 		# <class 'pandas.core.series.Series'>
     # df['Street'] = scaler.fit_transform(np.array(df['Street']).reshape(-1, 1))
@@ -791,140 +803,207 @@ def preprocess_data(csv_file):
 ######################.    Code snippet for describe() .    ######################.
 ######################.       Standardize Evrything.        ######################.
 ######################.    		     Usefull .   		    ######################.
-    # print('\n\n Intermediate Result')
+    print('\n\n Intermediate Result')
     count = 0
     all_max = []
     max_max = []
     target_cols = ['SalePrice']
-    features_cols = []
+    # features_cols = []
 
-    for f in df:
-    	count += 1
-    	maxx = []
-    	if f != 'SalePrice':
-    		features_cols.append(f)
-    	# 	df['{}'.format(f)] = scaler.fit_transform(np.array(df['{}'.format(f)]).reshape(-1, 1))
-	    # 	for i in df['{}'.format(f)].describe():
-	    # 		if i != 1460:
-	    # 			maxx.append(i)
-    	# # print(max(maxx))
-	    # 	all_max.append(max(maxx))
+    # for f in df:
+    # 	count += 1
+    # 	maxx = []
+    # 	if f != 'SalePrice':
+    # 		features_cols.append(f)
+    # 		df['{}'.format(f)] = scaler.fit_transform(np.array(df['{}'.format(f)]).reshape(-1, 1))
+	   #  	for i in df['{}'.format(f)].describe():
+	   #  		if i != 1460:
+	   #  			maxx.append(i)
+    # 	# print(max(maxx))
+	   #  	all_max.append(max(maxx))
     # print('\n\tThe End\n')
     # print(count)
     # print(len(all_max))
     # print('\n\n If more then 1')
-    for b in all_max:
-    	if b > 1:
-    		max_max.append(b)
-    # print(max_max)
-    # print(len(max_max))
-    # print(df.describe())
-    features_cols.remove('Id')
+    # for b in all_max:
+    # 	if b > 1:
+    # 		max_max.append(b)
+    # # print(max_max)
+    # # print(len(max_max))
+    # # print(df.describe())
+    # features_cols.remove('Id')
     # print(features_cols)
-    # y_train = df[target_cols]
+    y_train = df[target_cols]
+    # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea']]
+
+    #	Training set 1
     # X_train = df[['YearBuilt', 'MSSubClass', 'GarageArea', 'LotArea', 'TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'GrLivArea', 'TotRmsAbvGrd', 'YrSold']]
-    # X_train = df[features_cols]
+    # Accuracy = 78; 83; 82; 85; 77; 60; 74; 77; 71; 85; 82; 71; 83; 84; 74; 76; 84; 80; 81; 80
+
+    #	Training set 2
     X_train = df[['OverallQual', 'GrLivArea', 'GarageCars', 'TotalBsmtSF', 'FullBath', 'YearBuilt']]
-    return X_train
+
+
+###############		Standardize		###############
+   
+###############		Correlation		###############
+    print("Find most important features relative to target")
+    corr = df.corr()
+    corr.sort_values(["SalePrice"], ascending = False, inplace = True)
+    print(corr.SalePrice)
+###############		Correlation		###############
+
+# Differentiate numerical features (minus the target) and categorical features
+###############		Correlation		###############
+    categorical_features = df.select_dtypes(include = ["object"]).columns
+    numerical_features = df.select_dtypes(exclude = ["object"]).columns
+    numerical_features = numerical_features.drop("SalePrice")
+    print("Numerical features : " + str(len(numerical_features)))
+    print("Categorical features : " + str(len(categorical_features)))
+    train_num = df[numerical_features]
+    train_cat = df[categorical_features]
+
+    # Handle remaining missing values for numerical features by using median as replacement
+    print("NAs for numerical features in train : " + str(train_num.isnull().values.sum()))
+    train_num = train_num.fillna(train_num.median()) 
+    print("Remaining NAs for numerical features in train : " + str(train_num.isnull().values.sum()))
+
+
+    skewness = train_num.apply(lambda x: skew(x))
+    skewness = skewness[abs(skewness) > 0.5]
+    print(str(skewness.shape[0]) + " skewed numerical features to log transform")
+    skewed_features = skewness.index
+    train_num[skewed_features] = np.log1p(train_num[skewed_features])
+    print('\n\n\n\n\n')
+###############		Correlation		###############
+
+
+    return X_train, y_train
 ##################################################################
-
-
-######################.    research works.    ######################.
-    # print('\n\t\t\t NEXT TURN \n\n')
-    # print(df['Neighborhood'])
-    # www = df.describe()
-    # for f in www:
-    # 	if f != 1460:
-    # 		print(f)
-    # 		print(type(f))
-
-    # print(type(www))					#	<class 'pandas.core.frame.DataFrame'>
-    # df.to_csv("test_description_2.csv")
-    # print(df.isnull().sum())
-    # print(df.describe())
-    print('\n\n')
-    # print(df.head(2))
-    # print('\n\n')
-    # print(df[['HouseStyle', 'Condition1', 'Condition2', 'BldgType', 'RoofStyle'\
-    # 	, 'RoofMatl', 'Exterior1st', 'Exterior2nd', 'MasVnrType', 'ExterQual', \
-    # 	'ExterCond', 'Foundation', 'BsmtQual', 'BsmtCond', 'BsmtExposure', \
-    # 	'BsmtFinType1', 'BsmtFinType2', 'Heating', 'HeatingQC', 'CentralAir', 'Electrical',\
-    # 	'KitchenQual', 'Functional', 'FireplaceQu', 'GarageType', 'GarageFinish', \
-    # 	'GarageQual', 'GarageCond', 'PavedDrive', 'PoolQC', 'Fence', 'MiscFeature', 'SaleType', \
-    # 	'SaleCondition']].describe())
-    # print('\n\n')
-    # print('\t\t\t Time For Error')
-    # print('\n\n')
-##################################################################
-
-
 
 
 
 
 def wrap_preprocess():
-    X = preprocess_data("data/test.csv")
-
-    y = pd.read_csv('data/sample_submission.csv')
-    y = y['SalePrice']
-
-    # print(y)
-
-    # X = X.reshape(-1, 1)
-    # X = np.ravel(X_train)
-    # y = np.ravel(y_train)
-    # train_size = int(len(y_train) * 0.80)
-    
-    # Xtrain = np.array(X_train[:train_size])
-    # ytrain = np.array(y_train[:train_size])
-    # X_val = np.array(X_train[train_size:])
-    # y_val = np.array(y_train[train_size:])
-    # print(X)
-
-    # www = np.ravel(Xtrain)
-    # print(www.shape)
-##################################################################
-    # X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
-    # # clf = svm.SVR()
-    # # clf = LinearRegression()
-    # # clf = LinearRegression(n_jobs=-1)
-    # clf = svm.SVR(kernel='linear')
-    # # for k in ['linear','poly','rbf','sigmoid']:
-    # # 	clf = svm.SVR(kernel=k)
-    # # 	clf.fit(X_train, y_train)
-    # # 	confidence = clf.score(X_test, y_test)
-    # # 	print(k,confidence)
-
-    # clf.fit(X_train, y_train)
-    # confidence = clf.score(X_test, y_test)
-    # print('\n\t\t CONFIDENCE\n')
-    # print(confidence)
-
-    # filename = 'finalized_model.sav'
-    # pickle.dump(clf, open(filename, 'wb'))
-
-    loaded_model = pickle.load(open('models/AdaBoostClassifier_F.sav', 'rb'))
-
-    forecast_set = loaded_model.predict(X)
-    vals = np.round(forecast_set)
-    range = np.arange(1461, 2920)
-    with open('data/AdaBoostClassifier_acc0068.csv', 'w') as f:
-    	f.write("Id,SalePrice\n")
-    	for x, y in zip(range, vals):
-    		f.write("{}, {} \n".format(x, int(y)))
-    f.close()
-
-    print(vals)
+    X, y = preprocess_data("data/train.csv")
 
 
 ##################################################################
+    X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.2)
+    print("X_train : " + str(X_train.shape))
+    print("X_test : " + str(X_test.shape))
+    print("y_train : " + str(y_train.shape))
+    print("y_test : " + str(y_test.shape))
+
+    scorer = make_scorer(mean_squared_error, greater_is_better = False)
+
+    def rmse_cv_train(model):
+        rmse= np.sqrt(-cross_val_score(model, X_train, y_train, scoring = scorer, cv = 10))
+        return(rmse)
+
+    def rmse_cv_test(model):
+        rmse= np.sqrt(-cross_val_score(model, X_test, y_test, scoring = scorer, cv = 10))
+        return(rmse)
+
+    # clf_1 = RandomForestRegressor()
+    # clf_1.fit(X_train, y_train)
+    # confidence_1 = clf_1.score(X_test, y_test)
+    # print('\n\t\t CONFIDENCE - 1\n')
+    # print(confidence_1)
+    # filename = 'models/jan31_10col_.sav'
+    # pickle.dump(clf_1, open(filename, 'wb'))
+
+    elasticNet = ElasticNetCV(l1_ratio = [0.1, 0.3, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 1],
+                          alphas = [0.0001, 0.0003, 0.0006, 0.001, 0.003, 0.006, 
+                                    0.01, 0.03, 0.06, 0.1, 0.3, 0.6, 1, 3, 6], 
+                          max_iter = 50000, cv = 10)
+    elasticNet.fit(X_train, y_train)
+    alpha = elasticNet.alpha_
+    ratio = elasticNet.l1_ratio_
+    print("Best l1_ratio :", ratio)
+    print("Best alpha :", alpha )
+
+    print("Try again for more precision with l1_ratio centered around " + str(ratio))
+    elasticNet = ElasticNetCV(l1_ratio = [ratio * .85, ratio * .9, ratio * .95, ratio, ratio * 1.05, ratio * 1.1, ratio * 1.15],
+                              alphas = [0.0001, 0.0003, 0.0006, 0.001, 0.003, 0.006, 0.01, 0.03, 0.06, 0.1, 0.3, 0.6, 1, 3, 6], 
+                                                        max_iter = 50000, cv = 10)
+    elasticNet.fit(X_train, y_train)
+    if (elasticNet.l1_ratio_ > 1):
+        elasticNet.l1_ratio_ = 1    
+    alpha = elasticNet.alpha_
+    ratio = elasticNet.l1_ratio_
+    print("Best l1_ratio :", ratio)
+    print("Best alpha :", alpha )
+
+    print("Now try again for more precision on alpha, with l1_ratio fixed at " + str(ratio) + 
+          " and alpha centered around " + str(alpha))
+    elasticNet = ElasticNetCV(l1_ratio = ratio,
+                              alphas = [alpha * .6, alpha * .65, alpha * .7, alpha * .75, alpha * .8, alpha * .85, alpha * .9, 
+                                                                  alpha * .95, alpha, alpha * 1.05, alpha * 1.1, alpha * 1.15, alpha * 1.25, alpha * 1.3, 
+                                                                                                      alpha * 1.35, alpha * 1.4],max_iter = 50000, cv = 10)
+    elasticNet.fit(X_train, y_train)
+    if (elasticNet.l1_ratio_ > 1):
+        elasticNet.l1_ratio_ = 1    
+    alpha = elasticNet.alpha_
+    ratio = elasticNet.l1_ratio_
+    print("Best l1_ratio :", ratio)
+    print("Best alpha :", alpha )
+
+    #####################################################
+    # filename = 'models/ElasticNetCV.sav'
+    # pickle.dump(elasticNet, open(filename, 'wb'))
+    #####################################################
+
+    print('\n')
+    print("ElasticNet RMSE on Training set :", rmse_cv_train(elasticNet).mean())
+    print('\n')
+    print("ElasticNet RMSE on Test set :", rmse_cv_test(elasticNet).mean())
+    print('\n')
+    confidence_1 = elasticNet.score(X_test, y_test)
+    print('\n\t\t CONFIDENCE - 1\n')
+    print(confidence_1)
+
+    y_train_pred = elasticNet.predict(X_train)
+    y_test_pred	 = elasticNet.predict(X_test)
+    y_train      = y_train.values.reshape(1,-1)
+    y_test       = y_test.values.reshape(1,-1)
+    print('\n')
+    print(y_train_pred)
+    print('\n')
+    print(y_train[0])
+    # print('\n')
+    # print(y_test_pred.shape)
+    # print('\n')
+    # print(y_test.shape[0])
+
+
+
+
+
+#     plt.scatter(y_train_pred, y_train_pred - y_train[0], c = "blue", marker = "s", label = "Training data")
+#     plt.scatter(y_test_pred, y_test_pred - y_test[0], c = "lightgreen", marker = "s", label = "Validation data")
+#     plt.title("Linear regression")
+#     plt.xlabel("Predicted values")
+#     plt.ylabel("Residuals")
+#     plt.legend(loc = "upper left")
+#     plt.hlines(y = 0, xmin = 10.5, xmax = 13.5, color = "red")
+#     plt.show()
+
+# # Plot predictions
+#     plt.scatter(y_train_pred, y_train[0], c = "blue", marker = "s", label = "Training data")
+#     plt.scatter(y_test_pred, y_test[0], c = "lightgreen", marker = "s", label = "Validation data")
+#     plt.title("Linear regression")
+#     plt.xlabel("Predicted values")
+#     plt.ylabel("Real values")
+#     plt.legend(loc = "upper left")
+#     plt.plot([10.5, 13.5], [10.5, 13.5], c = "red")
+#     plt.show()
+
+
+
+##################################################################
 
     
-    # with h5py.File("dataset-v1.h5", 'w') as f:
-    #     f.create_dataset("X_train", data=np.array(X_train[:train_size]))
-    #     f.create_dataset('y_train', data=np.array(y_train[:train_size]))
-    #     f.create_dataset("X_val", data=np.array(X_train[train_size:]))
-    #     f.create_dataset("y_val", data=np.array(y_train[train_size:]))
 
 
 wrap_preprocess()

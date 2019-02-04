@@ -2,8 +2,9 @@ import pandas as pd
 import numpy as np
 import statistics 
 
-test    = pd.read_csv('data/jan31_full_RandomForestRegressor_acc9994.csv')
+test    = pd.read_csv('data/ElasticNetCV_acc7882.csv')
 reality = pd.read_csv('data/sample_submission.csv')
+print(test.shape)
 
 
 # results = pd.DataFrame(data = [[reality],[test]], columns=['Sub', 'Test'])
@@ -133,6 +134,11 @@ print(statistics.mean(attemps))		# Another way
 # Compare (acc) = 0.7003
 
 
+#				February 4
+
+#				ElasticNetCV
+# 19.		Trained acc = 0.7882
+# Compare (acc) = 0.7015
 
 
 
