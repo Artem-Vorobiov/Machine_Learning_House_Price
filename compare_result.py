@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import statistics 
 
-test    = pd.read_csv('data/ElasticNetCV_acc7882.csv')
+test    = pd.read_csv('data/ridge_sol.csv')
 reality = pd.read_csv('data/sample_submission.csv')
 print(test.shape)
 
